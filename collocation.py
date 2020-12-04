@@ -1,8 +1,10 @@
+#!/bin/env python
+
+import argparse
 import pandas as pd
 import nltk
 import json
 import conllu as cl
-import pyconll as pl
 
 def load_data(file):
     with open(file, 'r', encoding='utf-8') as f:
@@ -80,23 +82,30 @@ def check_collocation(col, conllulist, sentlist):
                 
         
 if __name__ == '__main__':
-    file = './corpus.json'
-    check_file = './ud.conllu'
-    n = 2
-    corpus = load_data(file)
-    ngrams, ngram_finder = ngrams(corpus, n)
+    parser = argparse.ArgumentParser(description="collocation.py")
+    parser.add_argument('-corpus', required=True, type=str,
+                        help="path to the corpus")
+    parser.add_argument('-conllu', default=None, type=str,
+                        help="path to the CoNLL-U file for collocation checking")
+    parser.add_argument('-n', required=True, default=2, type=int,
+                        help="number of sentences to be generated")
+    args = parser.parse_args()
+
+    corpus = load_data(args.corpus)
+    ngrams, ngram_finder = ngrams(corpus, args.n)
     ngrams_compare = extract_collocation(ngrams, ngram_finder)
     
-    conllulist, sentlist = load_check_data(check_file)
-#    
-    check = pd.DataFrame()
-    for columns in list(ngrams_compare.columns):
-        if columns is not 'Score':
-            check_results = []
-            for collocation in ngrams_compare[columns]:
-                check_results.append(check_collocation(collocation, conllulist, sentlist))
-            check[columns] = ngrams_compare[columns]
-            check[columns+' Result'] = check_results
+    if args.conllu is not None:
+        assert args.n == 2, "Only Bigram is currently supported!"
+        conllulist, sentlist = load_check_data(args.conllu)
+        check = pd.DataFrame()
+        for columns in list(ngrams_compare.columns):
+            if columns is not 'Score':
+                check_results = []
+                for collocation in ngrams_compare[columns]:
+                    check_results.append(check_collocation(collocation, conllulist, sentlist))
+                check[columns] = ngrams_compare[columns]
+                check[columns+' Result'] = check_results
                 
     
 

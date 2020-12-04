@@ -16,4 +16,5 @@ where `-corpus` represents the path to the corpus, `-n` represents the parameter
 ## Remarks
 - Only bigram is currently supported for CoNLL-U dependency relation checking.
 - Feel free to post an issue if you have any questions.
+- 该项目原为清华大学“计算语言学”课程的搭配发现和抽取的作业实现。
 

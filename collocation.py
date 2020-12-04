@@ -25,31 +25,31 @@ def ngrams(corpus, n):
         ngram_finder = nltk.collocations.TrigramCollocationFinder.from_words(corpus)
     return ngrams, ngram_finder
 
-def extract_collocation(ngrams, ngram_finder):
+def extract_collocation(ngrams, ngram_finder, k=10):
     freq = ngram_finder.ngram_fd.items()
     freq_table = pd.DataFrame(list(freq), columns=['ngram','freq']).sort_values(by='freq', ascending=False)
-    freq_top = freq_table[:10].ngram.values
-    freq_top_score = freq_table[:10]['freq'].values
+    freq_top = freq_table[:k].ngram.values
+    freq_top_score = freq_table[:k]['freq'].values
     
     #PMI
     pmi_table = pd.DataFrame(list(ngram_finder.score_ngrams(ngrams.pmi)), columns=['ngram','PMI']).sort_values(by='PMI', ascending=False)
-    pmi_top = pmi_table[:10].ngram.values
-    pmi_top_score = pmi_table[:10]['PMI'].values
+    pmi_top = pmi_table[:k].ngram.values
+    pmi_top_score = pmi_table[:k]['PMI'].values
     
     #t-test
     t_table = pd.DataFrame(list(ngram_finder.score_ngrams(ngrams.student_t)), columns=['ngram','t']).sort_values(by='t', ascending=False)
-    t_top = t_table[:10].ngram.values
-    t_top_score = t_table[:10]['t'].values
+    t_top = t_table[:k].ngram.values
+    t_top_score = t_table[:k]['t'].values
     
     #chi-square
     chi_table = pd.DataFrame(list(ngram_finder.score_ngrams(ngrams.chi_sq)), columns=['ngram','chi-sq']).sort_values(by='chi-sq', ascending=False)
-    chi_top = chi_table[:10].ngram.values
-    chi_top_score = chi_table[:10]['chi-sq'].values
+    chi_top = chi_table[:k].ngram.values
+    chi_top_score = chi_table[:k]['chi-sq'].values
     
     #likelihood
     lik_table = pd.DataFrame(list(ngram_finder.score_ngrams(ngrams.likelihood_ratio)), columns=['ngram','likelihood']).sort_values(by='likelihood', ascending=False)
-    lik_top = lik_table[:10].ngram.values
-    lik_top_score = lik_table[:10]['likelihood'].values
+    lik_top = lik_table[:k].ngram.values
+    lik_top_score = lik_table[:k]['likelihood'].values
     
     ngrams_compare = pd.DataFrame([freq_top, freq_top_score, pmi_top, pmi_top_score, t_top, t_top_score, chi_top, chi_top_score, lik_top, lik_top_score]).T
     ngrams_compare.columns = ['Frequency','Score', 'PMI','Score', 'T-test','Score', 'Chi-Sq Test','Score', 'Likeihood Ratio Test', 'Score']
@@ -79,7 +79,6 @@ def check_collocation(col, conllulist, sentlist):
                     else:
                         result[conllu[idx]['deprel']] = 1 
     return result if result != {} else "No Relation Found"
-                
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="collocation.py")
@@ -88,12 +87,17 @@ if __name__ == '__main__':
     parser.add_argument('-conllu', default=None, type=str,
                         help="path to the CoNLL-U file for collocation checking")
     parser.add_argument('-n', required=True, default=2, type=int,
-                        help="number of sentences to be generated")
+                        help="ngram collocations to be extracted")
+    parser.add_argument('-k', default=10, type=int,
+                        help="top k collocations to be compared and output")
+
     args = parser.parse_args()
 
     corpus = load_data(args.corpus)
     ngrams, ngram_finder = ngrams(corpus, args.n)
-    ngrams_compare = extract_collocation(ngrams, ngram_finder)
+    ngrams_compare = extract_collocation(ngrams, ngram_finder, args.k)
+    
+    ngrams_compare.to_excel('./top_collocations.xlsx', encoding='utf-8')
     
     if args.conllu is not None:
         assert args.n == 2, "Only Bigram is currently supported!"
@@ -106,6 +110,8 @@ if __name__ == '__main__':
                     check_results.append(check_collocation(collocation, conllulist, sentlist))
                 check[columns] = ngrams_compare[columns]
                 check[columns+' Result'] = check_results
+        check.to_excel('./check_collocations.xlsx', encoding='utf-8')
+        
                 
     
 

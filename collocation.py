@@ -99,20 +99,20 @@ def check_collocation(col, conllulist, sentlist):
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="collocation.py")
-#    parser.add_argument('-corpus', required=True, type=str,
-#                        help="path to the corpus")
-#    parser.add_argument('-conllu', default=None, type=str,
-#                        help="path to the CoNLL-U file for collocation checking")
-#    parser.add_argument('-n', required=True, default=2, type=int,
-#                        help="ngram collocations to be extracted")
-#    parser.add_argument('-k', default=10, type=int,
-#                        help="top k collocations to be compared and output")
+   parser.add_argument('-corpus', required=True, type=str,
+                       help="path to the corpus")
+   parser.add_argument('-conllu', default=None, type=str,
+                       help="path to the CoNLL-U file for collocation checking")
+   parser.add_argument('-n', required=True, default=2, type=int,
+                       help="ngram collocations to be extracted")
+   parser.add_argument('-k', default=10, type=int,
+                       help="top k collocations to be compared and output")
 
     args = parser.parse_args()
-    args.corpus='./corpus.json'
-    args.conllu='ud.conllu'
-    args.n=2
-    args.k=20
+    # args.corpus='./corpus.json'
+    # args.conllu='ud.conllu'
+    # args.n=2
+    # args.k=20
     
     corpus = load_data(args.corpus)
     ngrams, ngram_finder = ngrams(corpus, args.n)
